@@ -1,6 +1,6 @@
 class PagesController < ApplicationController
-  skip_before_action :authenticate_user!, only: [ :home, :filter_categories ]
-
+  skip_before_action :authenticate_user!, only: [ :home, :filter_categories, :search ]
+  
   def home
     @locations = Location.all
     if params[:query].present?
@@ -12,8 +12,6 @@ class PagesController < ApplicationController
       end
     end
   end
-
-
 
   def filter_categories
     @category = params[:category]
@@ -61,6 +59,19 @@ class PagesController < ApplicationController
     respond_to do |format|
       format.html { render partial: "pages/cards", locals: { cards: @cards } }
     end
+  end
+
+  def search
+    @query = params[:query]
+
+    if @query.present?
+      @results = PgSearch.multisearch(@query)
+      @cards = @results.map(&:searchable)
+    else
+      @cards = []
+    end
+
+    render "search/search"
   end
 
 
